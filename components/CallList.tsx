@@ -55,7 +55,7 @@ const CallList = ({ type }: { type: 'ended' | 'upcoming' | 'recordings' }) => {
       toast({ title: 'Try Again Later' });
       console.error(error);
     }
-  }, [callRecordings, toast]);
+  }, [toast,callRecordings]);
 
   useEffect(() => {
     if (type === 'recordings') {
