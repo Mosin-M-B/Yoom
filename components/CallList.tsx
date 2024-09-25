@@ -1,21 +1,19 @@
 'use client';
 
 import { Call, CallRecording } from '@stream-io/video-react-sdk';
-
 import Loader from './Loader';
 import { useGetCalls } from '@/hooks/useGetCalls';
 import MeetingCard from './MeetingCard';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 
-
 const CallList = ({ type }: { type: 'ended' | 'upcoming' | 'recordings' }) => {
   const router = useRouter();
-  const { endedCalls, upcomingCalls, callRecordings, isLoading } =
-    useGetCalls();
+  const { endedCalls, upcomingCalls, callRecordings, isLoading } = useGetCalls();
   const [recordings, setRecordings] = useState<CallRecording[]>([]);
   const { toast } = useToast();
+
   const getCalls = () => {
     switch (type) {
       case 'ended':
@@ -42,30 +40,28 @@ const CallList = ({ type }: { type: 'ended' | 'upcoming' | 'recordings' }) => {
     }
   };
 
-  useEffect(() => {
-    const fetchRecordings = async () => {
-      try {
-        const callData = await Promise.all(
-          callRecordings?.map((meeting) => meeting.queryRecordings()) ?? []
-        );
-  
-        const recordings = callData
-          .filter((call) => call.recordings.length > 0)
-          .flatMap((call) => call.recordings);
-  
-        setRecordings(recordings);
-      } catch (error) {
-        toast({title:'try Again Leter'})
-        console.log(error);
-        
-      }
-    };
-  
-    if (type === 'recordings') {
-      fetchRecordings(); // Call the async function without await
+  const fetchRecordings = useCallback(async () => {
+    try {
+      const callData = await Promise.all(
+        callRecordings?.map((meeting) => meeting.queryRecordings()) ?? []
+      );
+
+      const recordings = callData
+        .filter((call) => call.recordings.length > 0)
+        .flatMap((call) => call.recordings);
+
+      setRecordings(recordings);
+    } catch (error) {
+      toast({ title: 'Try Again Later' });
+      console.error(error);
     }
-  }, [type, callRecordings]);
-  
+  }, [callRecordings, toast]);
+
+  useEffect(() => {
+    if (type === 'recordings') {
+      fetchRecordings();
+    }
+  }, [type, fetchRecordings]);
 
   if (isLoading) return <Loader />;
 
@@ -82,8 +78,8 @@ const CallList = ({ type }: { type: 'ended' | 'upcoming' | 'recordings' }) => {
               type === 'ended'
                 ? '/icons/previous.svg'
                 : type === 'upcoming'
-                  ? '/icons/upcoming.svg'
-                  : '/icons/recordings.svg'
+                ? '/icons/upcoming.svg'
+                : '/icons/recordings.svg'
             }
             title={
               (meeting as Call).state?.custom?.description ||
