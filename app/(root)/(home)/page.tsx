@@ -4,8 +4,24 @@ import MeetingTypeList from "../../../components/MeetingTypeList";
 const Home = () => {
   const now = new Date();
 
-  const time = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
-  const date = (new Intl.DateTimeFormat('en-US', { dateStyle: 'full' })).format(now);
+  // Get time in the Indian time zone (Asia/Kolkata)
+  const time = now.toLocaleTimeString('en-IN', { 
+    hour: '2-digit', 
+    minute: '2-digit', 
+    timeZone: 'Asia/Kolkata' 
+  });
+  
+  // Get date in the Indian time zone (Asia/Kolkata)
+  const date = now.toLocaleDateString('en-IN', { 
+    weekday: 'long', 
+    year: 'numeric', 
+    month: 'long', 
+    day: 'numeric', 
+    timeZone: 'Asia/Kolkata' 
+  });
+  
+  console.log(`Date: ${date}, Time: ${time}`);
+  
 
   return (
     <section className="flex size-full flex-col gap-5 text-white">
