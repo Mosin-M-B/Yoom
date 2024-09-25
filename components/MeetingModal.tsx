@@ -2,10 +2,9 @@ import React, { ReactNode } from "react";
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
+  
+ 
+
 } from "@/components/ui/dialog";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
@@ -46,7 +45,7 @@ const MeetingModal = ({
           <h1
             className={cn(
               "text-3xl font-bold leading-[42px]",
-              (className = "")
+              className
             )}
           >
             {title}

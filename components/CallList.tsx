@@ -8,7 +8,7 @@ import MeetingCard from './MeetingCard';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
-import { title } from 'process';
+
 
 const CallList = ({ type }: { type: 'ended' | 'upcoming' | 'recordings' }) => {
   const router = useRouter();
@@ -56,6 +56,8 @@ const CallList = ({ type }: { type: 'ended' | 'upcoming' | 'recordings' }) => {
         setRecordings(recordings);
       } catch (error) {
         toast({title:'try Again Leter'})
+        console.log(error);
+        
       }
     };
   
