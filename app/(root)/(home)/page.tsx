@@ -1,21 +1,20 @@
 "use client";
 import MeetingTypeList from '@/components/MeetingTypeList';
+import { useGetCalls } from '@/hooks/useGetCalls';
 import { useMeetingTime } from '@/hooks/useMeetingDate';
-import { useGetCalls } from '@/hooks/useGetCalls'; // Assuming this is where you get meetings
-import { useState, useEffect } from 'react';
+import { Call, CallRecording } from '@stream-io/video-react-sdk';
+import { useCallback, useEffect, useState } from 'react';
 
 const Home = () => {
-  const { upcomingCalls } = useGetCalls(); // Fetch upcoming calls
-  const [closestMeeting, setClosestMeeting] = useState(null);
+  const { upcomingCalls } = useGetCalls();
+  const [closestMeeting, setClosestMeeting] = useState<Call | CallRecording | null>(null);
 
-  // Get the current time
   const now = new Date();
 
-  // Get the current time and date in the Indian time zone (Asia/Kolkata)
   const currentTime = now.toLocaleTimeString('en-IN', {
     hour: '2-digit',
     minute: '2-digit',
-    timeZone: 'Asia/Kolkata'
+    timeZone: 'Asia/Kolkata',
   });
 
   const currentDate = now.toLocaleDateString('en-IN', {
@@ -23,36 +22,31 @@ const Home = () => {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
-    timeZone: 'Asia/Kolkata'
+    timeZone: 'Asia/Kolkata',
   });
 
-  // Function to find the closest upcoming meeting
-  const findClosestMeeting = () => {
+  const findClosestMeeting = useCallback((): Call | CallRecording | null => {
     if (!upcomingCalls || upcomingCalls.length === 0) return null;
 
-    // Sort meetings by time and find the closest one
-    const sortedMeetings = upcomingCalls.sort((a: any, b: any) => {
+    const sortedMeetings = upcomingCalls.sort((a: Call | CallRecording, b: Call | CallRecording) => {
       const timeA = new Date(a.state?.startsAt || a.start_time).getTime();
       const timeB = new Date(b.state?.startsAt || b.start_time).getTime();
       return timeA - timeB;
     });
 
-    // Filter meetings that are in the future and find the closest
-    const futureMeetings = sortedMeetings.filter((meeting: any) => {
+    const futureMeetings = sortedMeetings.filter((meeting: Call | CallRecording) => {
       const meetingTime = new Date(meeting.state?.startsAt || meeting.start_time).getTime();
       return meetingTime > now.getTime(); // Only future meetings
     });
 
-    return futureMeetings[0]; // The closest future meeting
-  };
+    return futureMeetings[0] || null;
+  }, [upcomingCalls, now]);
 
-  // Set the closest meeting when upcomingCalls updates
   useEffect(() => {
     const closest = findClosestMeeting();
     setClosestMeeting(closest);
-  }, [upcomingCalls]);
+  }, [findClosestMeeting]);
 
-  // Get only the time for the closest meeting
   const upcomingMeetingTime = useMeetingTime(closestMeeting);
 
   return (
@@ -60,18 +54,11 @@ const Home = () => {
       <div className="h-[303px] w-full rounded-[20px] bg-hero bg-cover">
         <div className="flex h-full flex-col justify-between max-md:px-5 max-md:py-8 lg:p-11">
           <h2 className="glassmorphism max-w-[273px] rounded py-2 text-center text-base font-normal">
-           
-            {
-              upcomingMeetingTime ? (
-                <h2>
-                  Upcoming Meeting at: {upcomingMeetingTime}
-                </h2>
-              ):(
-                  <h2>
-                    No Upcoming Meetings
-                  </h2>
-              )
-            }
+            {upcomingMeetingTime ? (
+              <h2>Upcoming Meeting at: {upcomingMeetingTime}</h2>
+            ) : (
+              <h2>No Upcoming Meetings</h2>
+            )}
           </h2>
           <div className="flex flex-col gap-2">
             <h1 className="text-4xl font-extrabold lg:text-7xl">{currentTime}</h1>
@@ -79,7 +66,6 @@ const Home = () => {
           </div>
         </div>
       </div>
-
       <MeetingTypeList />
     </section>
   );
