@@ -28,13 +28,13 @@ const Home = () => {
   const findClosestMeeting = useCallback((): Call | CallRecording | null => {
     if (!upcomingCalls || upcomingCalls.length === 0) return null;
 
-    const sortedMeetings = upcomingCalls.sort((a: Call | CallRecording, b: Call | CallRecording) => {
+    const sortedMeetings = upcomingCalls.sort((a, b) => {
       const timeA = new Date(a.state?.startsAt || a.start_time).getTime();
       const timeB = new Date(b.state?.startsAt || b.start_time).getTime();
       return timeA - timeB;
     });
 
-    const futureMeetings = sortedMeetings.filter((meeting: Call | CallRecording) => {
+    const futureMeetings = sortedMeetings.filter((meeting) => {
       const meetingTime = new Date(meeting.state?.startsAt || meeting.start_time).getTime();
       return meetingTime > now.getTime(); // Only future meetings
     });
@@ -45,7 +45,7 @@ const Home = () => {
   useEffect(() => {
     const closest = findClosestMeeting();
     setClosestMeeting(closest);
-  }, [findClosestMeeting]);
+  }, [findClosestMeeting, now]); // Include 'now' if necessary
 
   const upcomingMeetingTime = useMeetingTime(closestMeeting);
 
