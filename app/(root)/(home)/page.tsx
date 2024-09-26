@@ -2,25 +2,14 @@
 import MeetingTypeList from '@/components/MeetingTypeList';
 import { useMeetingTime } from '@/hooks/useMeetingDate';
 import { useGetCalls } from '@/hooks/useGetCalls'; // Assuming this is where you get meetings
-import { useState, useEffect, useCallback, useMemo } from 'react';
-
-// Define types for calls and meetings
-type Call = {
-  state?: {
-    startsAt?: string;
-  };
-  start_time?: string;
-};
-
-type CallRecording = {
-  start_time?: string;
-};
+import { useState, useEffect, useMemo } from 'react';
+import { Call, CallRecording } from '@stream-io/video-client'; // Assuming this is the source for Call and CallRecording
 
 const Home = () => {
   const { upcomingCalls } = useGetCalls(); // Fetch upcoming calls
   const [closestMeeting, setClosestMeeting] = useState<Call | CallRecording | null>(null);
 
-  // Memoize the current time and date so it doesn't change on every render
+  // Memoized current time
   const now = useMemo(() => new Date(), []);
 
   // Get the current time and date in the Indian time zone (Asia/Kolkata)
@@ -38,31 +27,46 @@ const Home = () => {
     timeZone: 'Asia/Kolkata',
   });
 
-  // Function to find the closest upcoming meeting, wrapped in useCallback
-  const findClosestMeeting = useCallback(() => {
+  // Type guard to differentiate between Call and CallRecording
+  const isCall = (obj: Call | CallRecording): obj is Call => {
+    return (obj as Call).state !== undefined;
+  };
+
+  // Function to find the closest upcoming meeting
+  const findClosestMeeting = () => {
     if (!upcomingCalls || upcomingCalls.length === 0) return null;
 
     // Sort meetings by time and find the closest one
     const sortedMeetings = upcomingCalls.sort((a: Call | CallRecording, b: Call | CallRecording) => {
-      const timeA = new Date(a.state?.startsAt || a.start_time || '').getTime();
-      const timeB = new Date(b.state?.startsAt || b.start_time || '').getTime();
+      // Handle 'a'
+      const timeA = isCall(a)
+        ? new Date(a.state?.startsAt || a.start_time || '').getTime() // If 'a' is Call, use 'state.startsAt'
+        : new Date(a.start_time || '').getTime(); // If 'a' is CallRecording, use 'start_time'
+
+      // Handle 'b'
+      const timeB = isCall(b)
+        ? new Date(b.state?.startsAt || b.start_time || '').getTime() // If 'b' is Call, use 'state.startsAt'
+        : new Date(b.start_time || '').getTime(); // If 'b' is CallRecording, use 'start_time'
+
       return timeA - timeB;
     });
 
     // Filter meetings that are in the future and find the closest
     const futureMeetings = sortedMeetings.filter((meeting: Call | CallRecording) => {
-      const meetingTime = new Date(meeting.state?.startsAt || meeting.start_time || '').getTime();
+      const meetingTime = isCall(meeting)
+        ? new Date(meeting.state?.startsAt || meeting.start_time || '').getTime()
+        : new Date(meeting.start_time || '').getTime();
       return meetingTime > now.getTime(); // Only future meetings
     });
 
-    return futureMeetings[0] || null; // The closest future meeting
-  }, [upcomingCalls, now]);
+    return futureMeetings[0] || null; // Return the closest future meeting or null
+  };
 
   // Set the closest meeting when upcomingCalls updates
   useEffect(() => {
     const closest = findClosestMeeting();
     setClosestMeeting(closest);
-  }, [upcomingCalls, findClosestMeeting]);
+  }, [upcomingCalls]);
 
   // Get only the time for the closest meeting
   const upcomingMeetingTime = useMeetingTime(closestMeeting);
