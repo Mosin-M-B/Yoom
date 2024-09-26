@@ -69,7 +69,7 @@ const Home = () => {
   }, [findClosestMeeting]); // Include `findClosestMeeting` in dependencies
 
   // Get only the time for the closest meeting, handle null case
-  const upcomingMeetingTime = useMeetingTime(closestMeeting);
+  const upcomingMeetingTime = closestMeeting ? useMeetingTime(closestMeeting) : null; // Call useMeetingTime only if closestMeeting is not null
 
   return (
     <section className="flex size-full flex-col gap-5 text-white">
