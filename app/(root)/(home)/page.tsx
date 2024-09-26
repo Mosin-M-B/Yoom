@@ -68,8 +68,8 @@ const Home = () => {
     setClosestMeeting(closest);
   }, [upcomingCalls]);
 
-  // Get only the time for the closest meeting
-  const upcomingMeetingTime = useMeetingTime(closestMeeting);
+  // Get only the time for the closest meeting, handle null case
+  const upcomingMeetingTime = closestMeeting ? useMeetingTime(closestMeeting) : null;
 
   return (
     <section className="flex size-full flex-col gap-5 text-white">
