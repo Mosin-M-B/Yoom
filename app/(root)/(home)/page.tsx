@@ -2,7 +2,7 @@
 import MeetingTypeList from '@/components/MeetingTypeList';
 import { useMeetingTime } from '@/hooks/useMeetingDate';
 import { useGetCalls } from '@/hooks/useGetCalls'; // Assuming this is where you get meetings
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Call, CallRecording } from '@stream-io/video-client'; // Adjust the import based on your setup
 
 const Home = () => {
@@ -32,8 +32,8 @@ const Home = () => {
     return (obj as Call).state !== undefined;
   };
 
-  // Function to find the closest upcoming meeting
-  const findClosestMeeting = () => {
+  // Memoized function to find the closest upcoming meeting
+  const findClosestMeeting = useCallback(() => {
     if (!upcomingCalls || upcomingCalls.length === 0) return null;
 
     // Sort meetings by time and find the closest one
@@ -60,16 +60,16 @@ const Home = () => {
     });
 
     return futureMeetings[0] || null; // Return the closest future meeting or null
-  };
+  }, [upcomingCalls, now]); // Include `upcomingCalls` and `now` as dependencies
 
   // Set the closest meeting when upcomingCalls updates
   useEffect(() => {
     const closest = findClosestMeeting();
     setClosestMeeting(closest);
-  }, [upcomingCalls]);
+  }, [findClosestMeeting]); // Include `findClosestMeeting` in dependencies
 
   // Get only the time for the closest meeting, handle null case
-  const upcomingMeetingTime = closestMeeting ? useMeetingTime(closestMeeting) : null;
+  const upcomingMeetingTime = useMeetingTime(closestMeeting);
 
   return (
     <section className="flex size-full flex-col gap-5 text-white">
