@@ -50,7 +50,7 @@ const Home = () => {
   useEffect(() => {
     const closest = findClosestMeeting();
     setClosestMeeting(closest);
-  });
+  }, [upcomingCalls,findClosestMeeting]);
 
   // Get only the time for the closest meeting
   const upcomingMeetingTime = useMeetingTime(closestMeeting);
