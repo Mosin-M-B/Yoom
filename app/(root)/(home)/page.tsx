@@ -2,14 +2,14 @@
 import MeetingTypeList from '@/components/MeetingTypeList';
 import { useMeetingTime } from '@/hooks/useMeetingDate';
 import { useGetCalls } from '@/hooks/useGetCalls'; // Assuming this is where you get meetings
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 
 const Home = () => {
   const { upcomingCalls } = useGetCalls(); // Fetch upcoming calls
   const [closestMeeting, setClosestMeeting] = useState(null);
 
-  // Get the current time
-  const now = new Date();
+  // Memoize the current time and date so it doesn't change on every render
+  const now = useMemo(() => new Date(), []);
 
   // Get the current time and date in the Indian time zone (Asia/Kolkata)
   const currentTime = now.toLocaleTimeString('en-IN', {
