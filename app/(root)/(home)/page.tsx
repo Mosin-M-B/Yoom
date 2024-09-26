@@ -1,43 +1,72 @@
-import MeetingTypeList from "../../../components/MeetingTypeList";
-
+"use client";
+import MeetingTypeList from '@/components/MeetingTypeList';
+import { useGetCalls } from '@/hooks/useGetCalls';
+import { useMeetingTime } from '@/hooks/useMeetingDate';
+import { Call, CallRecording } from '@stream-io/video-react-sdk';
+import { useCallback, useEffect, useState } from 'react';
 
 const Home = () => {
+  const { upcomingCalls } = useGetCalls();
+  const [closestMeeting, setClosestMeeting] = useState<Call | CallRecording | null>(null);
+
   const now = new Date();
 
-  // Get time in the Indian time zone (Asia/Kolkata)
-  const time = now.toLocaleTimeString('en-IN', { 
-    hour: '2-digit', 
-    minute: '2-digit', 
-    timeZone: 'Asia/Kolkata' 
+  const currentTime = now.toLocaleTimeString('en-IN', {
+    hour: '2-digit',
+    minute: '2-digit',
+    timeZone: 'Asia/Kolkata',
   });
-  
-  // Get date in the Indian time zone (Asia/Kolkata)
-  const date = now.toLocaleDateString('en-IN', { 
-    weekday: 'long', 
-    year: 'numeric', 
-    month: 'long', 
-    day: 'numeric', 
-    timeZone: 'Asia/Kolkata' 
+
+  const currentDate = now.toLocaleDateString('en-IN', {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    timeZone: 'Asia/Kolkata',
   });
-  
-  console.log(`Date: ${date}, Time: ${time}`);
-  
+
+  const findClosestMeeting = useCallback((): Call | CallRecording | null => {
+    if (!upcomingCalls || upcomingCalls.length === 0) return null;
+
+    const sortedMeetings = upcomingCalls.sort((a, b) => {
+      const timeA = new Date(a.state?.startsAt || a.start_time).getTime();
+      const timeB = new Date(b.state?.startsAt || b.start_time).getTime();
+      return timeA - timeB;
+    });
+
+    const futureMeetings = sortedMeetings.filter((meeting) => {
+      const meetingTime = new Date(meeting.state?.startsAt || meeting.start_time).getTime();
+      return meetingTime > now.getTime(); // Only future meetings
+    });
+
+    return futureMeetings[0] || null;
+  }, [upcomingCalls, now]);
+
+  useEffect(() => {
+    const closest = findClosestMeeting();
+    setClosestMeeting(closest);
+  }, [findClosestMeeting, now]); // Include 'now' if necessary
+
+  const upcomingMeetingTime = useMeetingTime(closestMeeting);
 
   return (
     <section className="flex size-full flex-col gap-5 text-white">
       <div className="h-[303px] w-full rounded-[20px] bg-hero bg-cover">
         <div className="flex h-full flex-col justify-between max-md:px-5 max-md:py-8 lg:p-11">
           <h2 className="glassmorphism max-w-[273px] rounded py-2 text-center text-base font-normal">
-            Upcoming Meeting at: 12:30 PM
+            {upcomingMeetingTime ? (
+              <h2>Upcoming Meeting at: {upcomingMeetingTime}</h2>
+            ) : (
+              <h2>No Upcoming Meetings</h2>
+            )}
           </h2>
           <div className="flex flex-col gap-2">
-            <h1 className="text-4xl font-extrabold lg:text-7xl">{time}</h1>
-            <p className="text-lg font-medium text-sky-1 lg:text-2xl">{date}</p>
+            <h1 className="text-4xl font-extrabold lg:text-7xl">{currentTime}</h1>
+            <p className="text-lg font-medium text-sky-1 lg:text-2xl">{currentDate}</p>
           </div>
         </div>
       </div>
-
-      < MeetingTypeList/>
+      <MeetingTypeList />
     </section>
   );
 };
