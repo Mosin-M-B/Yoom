@@ -2,7 +2,7 @@
 import MeetingTypeList from '@/components/MeetingTypeList';
 import { useMeetingTime } from '@/hooks/useMeetingDate';
 import { useGetCalls } from '@/hooks/useGetCalls'; // Assuming this is where you get meetings
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 
 const Home = () => {
   const { upcomingCalls } = useGetCalls(); // Fetch upcoming calls
@@ -26,8 +26,8 @@ const Home = () => {
     timeZone: 'Asia/Kolkata'
   });
 
-  // Function to find the closest upcoming meeting
-  const findClosestMeeting = () => {
+  // Function to find the closest upcoming meeting, wrapped in useCallback
+  const findClosestMeeting = useCallback(() => {
     if (!upcomingCalls || upcomingCalls.length === 0) return null;
 
     // Sort meetings by time and find the closest one
@@ -44,13 +44,13 @@ const Home = () => {
     });
 
     return futureMeetings[0]; // The closest future meeting
-  };
+  }, [upcomingCalls, now]);
 
   // Set the closest meeting when upcomingCalls updates
   useEffect(() => {
     const closest = findClosestMeeting();
     setClosestMeeting(closest);
-  }, [upcomingCalls,findClosestMeeting]);
+  }, [upcomingCalls, findClosestMeeting]);
 
   // Get only the time for the closest meeting
   const upcomingMeetingTime = useMeetingTime(closestMeeting);
@@ -60,16 +60,15 @@ const Home = () => {
       <div className="h-[303px] w-full rounded-[20px] bg-hero bg-cover">
         <div className="flex h-full flex-col justify-between max-md:px-5 max-md:py-8 lg:p-11">
           <h2 className="glassmorphism max-w-[273px] rounded py-2 text-center text-base font-normal">
-           
             {
               upcomingMeetingTime ? (
                 <h2>
                   Upcoming Meeting at: {upcomingMeetingTime}
                 </h2>
-              ):(
-                  <h2>
-                    No Upcoming Meetings
-                  </h2>
+              ) : (
+                <h2>
+                  No Upcoming Meetings
+                </h2>
               )
             }
           </h2>
