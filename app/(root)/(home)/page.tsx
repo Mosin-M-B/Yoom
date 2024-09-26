@@ -40,13 +40,13 @@ const Home = () => {
     const sortedMeetings = upcomingCalls.sort((a: Call | CallRecording, b: Call | CallRecording) => {
       // Handle 'a'
       const timeA = isCall(a)
-        ? new Date(a.state?.startsAt || '').getTime() // Provide a fallback to an empty string
-        : new Date(a.start_time || '').getTime(); // Provide a fallback to an empty string
+        ? new Date(a.state?.startsAt ?? new Date().toISOString()).getTime() // Fallback to current time if undefined
+        : new Date(a.start_time ?? new Date().toISOString()).getTime(); // Fallback to current time if undefined
 
       // Handle 'b'
       const timeB = isCall(b)
-        ? new Date(b.state?.startsAt || '').getTime() // Provide a fallback to an empty string
-        : new Date(b.start_time || '').getTime(); // Provide a fallback to an empty string
+        ? new Date(b.state?.startsAt ?? new Date().toISOString()).getTime() // Fallback to current time if undefined
+        : new Date(b.start_time ?? new Date().toISOString()).getTime(); // Fallback to current time if undefined
 
       return timeA - timeB;
     });
@@ -54,8 +54,8 @@ const Home = () => {
     // Filter meetings that are in the future and find the closest
     const futureMeetings = sortedMeetings.filter((meeting: Call | CallRecording) => {
       const meetingTime = isCall(meeting)
-        ? new Date(meeting.state?.startsAt || '').getTime() // Provide a fallback to an empty string
-        : new Date(meeting.start_time || '').getTime(); // Provide a fallback to an empty string
+        ? new Date(meeting.state?.startsAt ?? new Date().toISOString()).getTime() // Fallback to current time if undefined
+        : new Date(meeting.start_time ?? new Date().toISOString()).getTime(); // Fallback to current time if undefined
 
       return meetingTime > now.getTime(); // Only future meetings
     });
