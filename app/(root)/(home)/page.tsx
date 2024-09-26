@@ -3,7 +3,7 @@ import MeetingTypeList from '@/components/MeetingTypeList';
 import { useMeetingTime } from '@/hooks/useMeetingDate';
 import { useGetCalls } from '@/hooks/useGetCalls'; // Assuming this is where you get meetings
 import { useState, useEffect, useMemo } from 'react';
-import { Call, CallRecording } from '@stream-io/video-client'; // Assuming this is the source for Call and CallRecording
+import { Call, CallRecording } from '@stream-io/video-client'; // Adjust the import based on your setup
 
 const Home = () => {
   const { upcomingCalls } = useGetCalls(); // Fetch upcoming calls
@@ -40,12 +40,12 @@ const Home = () => {
     const sortedMeetings = upcomingCalls.sort((a: Call | CallRecording, b: Call | CallRecording) => {
       // Handle 'a'
       const timeA = isCall(a)
-        ? new Date(a.state?.startsAt || a.start_time || '').getTime() // If 'a' is Call, use 'state.startsAt'
+        ? new Date(a.state?.startsAt || '').getTime() // If 'a' is Call, use 'state.startsAt'
         : new Date(a.start_time || '').getTime(); // If 'a' is CallRecording, use 'start_time'
 
       // Handle 'b'
       const timeB = isCall(b)
-        ? new Date(b.state?.startsAt || b.start_time || '').getTime() // If 'b' is Call, use 'state.startsAt'
+        ? new Date(b.state?.startsAt || '').getTime() // If 'b' is Call, use 'state.startsAt'
         : new Date(b.start_time || '').getTime(); // If 'b' is CallRecording, use 'start_time'
 
       return timeA - timeB;
@@ -54,7 +54,7 @@ const Home = () => {
     // Filter meetings that are in the future and find the closest
     const futureMeetings = sortedMeetings.filter((meeting: Call | CallRecording) => {
       const meetingTime = isCall(meeting)
-        ? new Date(meeting.state?.startsAt || meeting.start_time || '').getTime()
+        ? new Date(meeting.state?.startsAt || '').getTime()
         : new Date(meeting.start_time || '').getTime();
       return meetingTime > now.getTime(); // Only future meetings
     });
