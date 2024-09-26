@@ -69,7 +69,7 @@ const Home = () => {
     setClosestMeeting(closest);
   }, [findClosestMeeting]); // Include `findClosestMeeting` in dependencies
 
-  // Check if closestMeeting is not null before calling useMeetingTime
+  // Always call useMeetingTime to adhere to hooks rules, but handle null case later
   const upcomingMeetingTime = useMeetingTime(closestMeeting || ({} as Call | CallRecording));
 
   return (
