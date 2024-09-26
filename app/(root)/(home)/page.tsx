@@ -27,20 +27,30 @@ const Home = () => {
 
   const findClosestMeeting = useCallback((): Call | CallRecording | null => {
     if (!upcomingCalls || upcomingCalls.length === 0) return null;
-
-    const sortedMeetings = upcomingCalls.sort((a, b) => {
-      const timeA = new Date(a.state?.startsAt || a.start_time).getTime();
-      const timeB = new Date(b.state?.startsAt || b.start_time).getTime();
-      return timeA - timeB;
-    });
-
+  
+    // Ensure you're using valid fields from the Call type
+    const sortedMeetings = upcomingCalls
+      .filter((meeting) => {
+        // Filter out meetings with invalid times
+        const startsAt = meeting.state?.startsAt;
+        return startsAt && !isNaN(new Date(startsAt).getTime());
+      })
+      .sort((a, b) => {
+        const timeA = new Date(a.state?.startsAt).getTime();
+        const timeB = new Date(b.state?.startsAt).getTime();
+        return timeA - timeB;
+      });
+  
     const futureMeetings = sortedMeetings.filter((meeting) => {
-      const meetingTime = new Date(meeting.state?.startsAt || meeting.start_time).getTime();
+      const meetingTime = new Date(meeting.state?.startsAt).getTime();
       return meetingTime > now.getTime(); // Only future meetings
     });
-
+  
     return futureMeetings[0] || null;
   }, [upcomingCalls, now]);
+  
+  
+  
 
   useEffect(() => {
     const closest = findClosestMeeting();
